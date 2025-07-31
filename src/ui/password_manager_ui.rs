@@ -1,4 +1,3 @@
-use crate::app::AppState;
 use crate::storage;
 use crate::vault::{Entry, Vault};
 use eframe::egui;

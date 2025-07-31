@@ -134,9 +134,7 @@ impl SettingsWindow {
                 // Применяем изменения
                 self.settings = self.buffer_settings.clone();
                 if let Err(e) = self.settings.save() {
-                    println!("Ошибка сохранения настроек: {}", e);
                 } else {
-                    println!("Настройки применены и сохранены!");
                     settings_applied = true; // Устанавливаем флаг применения
                     // Если тема или список тем изменились, сигнализируем об этом
                     if local_theme_changed {
@@ -199,7 +197,6 @@ impl SettingsWindow {
     fn delete_theme(theme_name: &str) {
         // Проверяем, что это не встроенная тема
         if theme_name == "Dark" || theme_name == "Light" {
-            println!("Невозможно удалить встроенную тему: {}", theme_name);
             return;
         }
 
@@ -211,12 +208,8 @@ impl SettingsWindow {
 
             // Пытаемся удалить файл
             match std::fs::remove_file(&theme_path) {
-                Ok(_) => {
-                    println!("Тема '{}' успешно удалена", theme_name);
-                }
-                Err(e) => {
-                    eprintln!("Ошибка удаления темы '{}': {}", theme_name, e);
-                }
+                Ok(_) => {}
+                Err(e) => {}
             }
         }
     }

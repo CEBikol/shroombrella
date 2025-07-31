@@ -150,7 +150,6 @@ impl eframe::App for PasswordApp {
             if let Ok(theme) = applied_settings.load_theme() {
                 ctx.set_visuals(theme.to_egui_visuals());
             }
-            println!("Настройки масштаба и темы применены!");
         }
     }
 }

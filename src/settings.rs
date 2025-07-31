@@ -29,9 +29,7 @@ impl Settings {
                 }
             } else {
                 let default_settings = Self::default();
-                if default_settings.save().is_ok() {
-                    println!("Создан файл настроек: {:?}", config_path);
-                }
+                if default_settings.save().is_ok() {}
                 return default_settings;
             }
         }
