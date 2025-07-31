@@ -6,7 +6,7 @@ use crate::{
         theme_creator_ui::ThemeCreator, vault_creator_ui::VaultCreator,
     },
 };
-use eframe::egui;
+use eframe::egui::{self, Widget};
 use std::path::PathBuf;
 
 pub struct PasswordApp {
@@ -71,27 +71,63 @@ impl Default for PasswordApp {
 impl eframe::App for PasswordApp {
     // В src/app.rs, метод update
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        // Применяем масштаб UI из СОХРАНЕННЫХ настроек (не буферных!)
+        // Применяем настройки UI
         let current_settings = self.settings_window.get_current_settings();
         ctx.set_pixels_per_point(current_settings.ui_scale);
-        // Также применяем тему из сохраненных настроек
         if let Ok(theme) = current_settings.load_theme() {
             ctx.set_visuals(theme.to_egui_visuals());
         }
 
-        egui::CentralPanel::default().show(ctx, |ui| {
-            match self.state {
-                AppState::Locked => {
-                    self.show_login_form(ui);
+        egui::TopBottomPanel::top("custom_title_bar").show(ctx, |ui| {
+            ui.horizontal(|ui| {
+                // Создаем область перетаскивания, которая будет занимать ВСЁ пространство
+                let drag_response = ui.allocate_response(ui.available_size(), egui::Sense::drag());
+
+                // Добавляем обработчик для перемещения окна
+                if drag_response.dragged() {
+                    ctx.send_viewport_cmd(egui::ViewportCommand::StartDrag);
                 }
-                AppState::Unlocked => {
-                    // Показываем менеджер паролей вместо формы логина
-                    if !self.password_manager.ui(ui) {
-                        // Если менеджер вернул false, значит нужно выйти
-                        self.logout();
+                drag_response.on_hover_cursor(egui::CursorIcon::Grab);
+
+                // Кнопка закрытия (будет поверх области перетаскивания)
+                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                    let close_btn = egui::Button::new("X")
+                        .frame(false)
+                        .fill(egui::Color32::TRANSPARENT)
+                        .stroke(egui::Stroke::NONE);
+
+                    if ui.add(close_btn).clicked() {
+                        ctx.send_viewport_cmd(egui::ViewportCommand::Close);
                     }
+                });
+            });
+        });
+
+        // Центральная панель
+        egui::CentralPanel::default().show(ctx, |ui| match self.state {
+            AppState::Locked => {
+                self.show_login_form(ui);
+            }
+            AppState::Unlocked => {
+                if !self.password_manager.ui(ui) {
+                    self.logout();
                 }
             }
+        });
+
+        //  Подвал с настройками и версией
+        egui::TopBottomPanel::bottom("footer").show(ctx, |ui| {
+            ui.horizontal(|ui| {
+                // Кнопка настроек слева
+                if ui.button("⚙️ Настройки").clicked() {
+                    self.settings_window.show = true;
+                }
+
+                // Версия приложения справа
+                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                    ui.label(format!("v{}", env!("CARGO_PKG_VERSION")));
+                });
+            });
         });
 
         // Показываем окно настроек если нужно и проверяем применение
@@ -156,15 +192,7 @@ impl eframe::App for PasswordApp {
 
 impl PasswordApp {
     fn show_login_form(&mut self, ui: &mut egui::Ui) {
-        // Кнопка настроек в правом верхнем углу
-        ui.horizontal(|ui| {
-            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                if ui.button("⚙️").clicked() {
-                    self.settings_window.show = true;
-                }
-            });
-        });
-
+        //  Возвращаем выравнивание по левому краю
         ui.heading("Shroombrella");
         ui.separator();
 
@@ -256,7 +284,7 @@ impl PasswordApp {
                             self.master_password.clear();
                         }
                         Err(e) => {
-                            self.error_message = format!("Ошибка расшифровки: {}", e);
+                            self.error_message = e;
                         }
                     }
                 }

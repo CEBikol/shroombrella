@@ -30,7 +30,9 @@ fn load_icon() -> eframe::egui::IconData {
 }
 
 fn main() -> Result<(), eframe::Error> {
-    let viewport: ViewportBuilder = ViewportBuilder::default().with_icon(load_icon());
+    let viewport: ViewportBuilder = ViewportBuilder::default()
+        .with_icon(load_icon())
+        .with_decorations(false);
 
     let mut options = eframe::NativeOptions::default();
     options.viewport = viewport;
