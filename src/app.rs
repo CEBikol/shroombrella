@@ -273,6 +273,7 @@ impl PasswordApp {
                 Ok(vault) => {
                     match vault.decrypt_entries(&self.master_password) {
                         Ok(entries) => {
+                            self.password_manager = PasswordManager::new();
                             // Инициализируем менеджер паролей
                             self.password_manager.set_vault(
                                 vault,

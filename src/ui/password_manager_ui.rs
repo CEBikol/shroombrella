@@ -43,6 +43,14 @@ pub struct PasswordManager {
     app_state: bool,
 }
 
+impl zeroize::Zeroize for PasswordManager {
+    fn zeroize(&mut self) {
+        self.decrypted_entries.zeroize();
+        self.master_password.zeroize();
+        self.edit_entry.zeroize();
+    }
+}
+
 impl PasswordManager {
     pub fn new() -> Self {
         Self {
@@ -82,6 +90,10 @@ impl PasswordManager {
         // Показываем диалог редактирования если нужно
         if self.show_edit_dialog {
             self.show_edit_dialog_ui(ui.ctx());
+        }
+
+        if !self.app_state {
+            self.zeroize();
         }
 
         self.app_state
